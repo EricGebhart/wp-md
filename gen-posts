@@ -6,6 +6,9 @@
 help(){
     print 'gen-posts - convert wordpress posts into markdown.'
     print ' '
+    print 'Usage:'
+    print 'gen-posts -u <userid> -d <database-name>'
+    print ' '
     print 'Query an mysql wordpress database and extract posts'
     print 'Extract and convert posts into markdown posts with'
     print 'the header and naming conventions used by jekyl'
@@ -38,6 +41,9 @@ help(){
     print '     * html-md -- rename, insert header, convert to markdown'
     print '     * convert.sed  -- Sed commands to cleanup and convert'
     print '                       html file to markdown.
+    print ' '
+    print 'Example:'
+    print './gen-posts -u eric -d ericgebhart'
     print ' '
     print 'See Also: '
     print 'html-md.sh will does the conversion from the'
