@@ -32,15 +32,17 @@ help(){
     print ' '
     print ' -u user      mysql user id'
     print ' -d db        mysql database name'
+    print ' -q filename  Filename for SQL query'
+    print '              defaults to "select-posts.sql"'
     print ' -h           This help text.'
     print ' '
     print 'Files:'
-    print ' * gen-posts -- this file.  Uses the following files.
+    print ' * gen-posts -- this file.  Uses the following files.'
     print ' '
     print '     * select-posts.sql  -- query for posts'
     print '     * html-md -- rename, insert header, convert to markdown'
     print '     * convert.sed  -- Sed commands to cleanup and convert'
-    print '                       html file to markdown.
+    print '                       html file to markdown.'
     print ' '
     print 'Example:'
     print './gen-posts -u eric -d ericgebhart'
@@ -49,7 +51,7 @@ help(){
     print 'html-md.sh will does the conversion from the'
     print 'Extracted posts using convert.sed for the changes'
     print 'between html and markdown.'
-    print 'http://github.com/EricGebhart/'
+    print 'http://github.com/EricGebhart/wp-md/'
     print ' '
     exit
 }
@@ -57,15 +59,19 @@ help(){
 
 # $opt will hold the current option
 local opt
-while getopts hu:d: opt; do
+while getopts hu:d:q: opt; do
     # loop continues till options finished
     # see which pattern $opt matches...
+    query="select-posts.sql"
     case $opt in
         (u)
             userid=$OPTARG
             ;;
         (d)
             db=$OPTARG
+            ;;
+        (q)
+            query=$OPTARG
             ;;
         (h)
             help
@@ -81,7 +87,7 @@ while getopts hu:d: opt; do
     esac
 done
 
-sudo mysql -u $userid -p $db < select-posts.sql > all_posts.txt
+sudo mysql -u $userid -p $db < $query > all_posts.txt
 
 mkdir -p wp_posts
 # split all_posts into individual posts and put them in the wp_posts directory.
