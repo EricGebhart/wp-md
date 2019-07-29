@@ -11,9 +11,9 @@ This set of scripts will query your mysql database and convert
 and rename the posts into individual jekyll/markdown posts using
 jekyll/markdown conventions for the header and naming.
 
-You'll need to edit the posts afterward just to be sure, 
-The URLs will definitely need fixing. But the bulk of the work 
-will be done.
+You'll need to edit the posts afterward just to be sure. 
+You may have HTML that the 'convert.sed' script does not handle.
+But the bulk of the work will be done.
 
 ---
 
@@ -71,8 +71,8 @@ need to do is run the 'gen-posts' script.
 For me that was 'gen-posts -u eric -d ericgebhart' 
 
 With my measly 22 posts this runs in a second or two. 
-Then I have to check them all, edit the URLs and generally
-make sure my writing is ok.
+Then I have to check them all, edit any weirdness and 
+add annoying things to the 'convert.sed' script.
 
 There is _help_.  'gen-posts -h' to get a verbose explanation.
 
@@ -82,27 +82,28 @@ There is _help_.  'gen-posts -h' to get a verbose explanation.
 
 The steps done by _gen-posts_ are as follows:
 
- * Query the database and create _all___posts.txt_ using the
+ * Query the database and create _all_posts.txt_ using the
    *select-posts.sql* query.
  * Use *awk* to extract all the posts into individual files 
    in the *wp_posts* directory.  These will be named 
-   in the pattern of _wp___post<#>_
+   in the pattern of _wp_post<#>_
  * Use *html-md.sh* to rename and convert the posts, 
    using *convert.sed* for the cleanup and conversion to markdown,
    place the resulting markdown posts in the 
-   _md___posts_ directory. These will have a nice name in
+   _md_posts_ directory. These will have a nice name in
    the form of _<Date>-<Title>.md_
 
 ---
 
 ## The Files
 
-The files used should be pretty obvious, but just in case.
+The program files should be pretty obvious, but just in case.
 
 ### gen-posts
+
 The master of all. It uses the query in *select-posts.sql* 
-to get everything into a file named _all___posts.txt_.
-Then it has a line of awk to break _all___posts.txt_ into individual wordpress posts. 
+to get everything into a file named _all_posts.txt_.
+Then it has a line of awk to break _all_posts.txt_ into individual wordpress posts. 
 Then it lets _html-md.sh_ do the rest.
 
 ### select-posts.sql
@@ -122,19 +123,24 @@ come up with a different query do a pull request to add it.
 
 ### html-md.sh
 
-The rest of this is done with *Awk* and *Sed*.  The 'html-md.sh' script extracts the date and title to create the filename and creates the jekyll header for the post. The 'convert.sed' file is a list of sed commands to clean up and replace the HTML tags with markdown.
-
+The rest of this is done with *Awk* and *Sed*.  The 'html-md.sh' script
+extracts the date and title to create the filename and creates the jekyll
+header for the post. The 'convert.sed' file is a list of sed commands
+to clean up and replace the HTML tags with markdown.
+Finally the output is piped through *fmt* which reformats the paragraphs
+from continuous text into lines with newlines. The default is a line
+length of 75 characters.
 
 ### convert.sed
 
-This is just a list of sed commands to swap html tags for markdown or delete them all together. It also gets rid of the _^M_s that are everywhere, and the _Content:_ label from the query.
+This is just a list of sed commands to swap html tags for markdown
+or delete them all together. It also gets rid of the _^M_s that are
+everywhere, and the _Content:_ label from the query.
+URLs are fixed, _<pre>_ tags are left because they work.
 
-My HTML was pretty simple, YMMV.  I didn't bother to completely fix URLS,
-I did make them easier to edit. So you'll have to edit your URLs manually
-afterward. If you feel compelled, it shouldn't be too difficult to
-add a *Sed* command to do it all, it will have to look forward to find the link name if you need a clue.  HTML and markdown are reversed in the position of link and the url for the link..
-I didn't have that many URLs and it's not
-difficult work.  If you run into things I didn't cover which is likely,
+My HTML was pretty simple, YMMV. 
+
+If you run into things I didn't cover which is likely,
 just add new patterns to 'convert.sed'.
 
 ---

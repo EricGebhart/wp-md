@@ -45,4 +45,4 @@ tags: []
 # process the contents and append to the new file.
 # get everything from the 4th line on, and send it
 # through sed with our set of conversion commands.
-sed -n '4,$p' $1 | sed -f convert.sed >> $filename
+sed -n '4,$p' $1 | sed -f convert.sed | fmt >> $filename
