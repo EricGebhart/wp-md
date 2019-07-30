@@ -13,6 +13,11 @@ help(){
     print 'Extract and convert posts into markdown posts with'
     print 'the header and naming conventions used by jekyl'
     print ' '
+    print 'If you have already queried everything and just wish'
+    print 'to reconvert your wp_posts run this with the -n  option'
+    print '-n will skip steps which query the database and create'
+    pritn 'the individual wp_post files.
+    print ' '
     print 'The process is this:'
     print '  * query mysql database and create all_posts.txt'
     print '  * use awk to extract each post into an individual'
@@ -22,10 +27,8 @@ help(){
     print '    conventions.  The converted posts will be in'
     print '    the md_posts directory'
     print ' '
-    print 'Conversion may not be complete, URL's will need manual'
-    print 'editing and if you have more complex html some tags'
-    print 'may be missed, change convert.sed as needed.'
-    print 'URLs could be done, I just didn't have that many.'
+    print 'Conversion may not be complete '
+    print 'some tags may be missed, change convert.sed as needed.'
     print 'My requirements for html where pretty simple. YMMV.'
     print 'Add patterns to convert.sed as needed. '
     print 'Some html tags like <pre> work perfectly fine.'
@@ -34,6 +37,7 @@ help(){
     print ' -d db        mysql database name'
     print ' -q filename  Filename for SQL query'
     print '              defaults to "select-posts.sql"'
+    print ' -n           No Query. Just convert html to md.'
     print ' -h           This help text.'
     print ' '
     print 'Files:'
@@ -59,10 +63,11 @@ help(){
 
 # $opt will hold the current option
 local opt
-while getopts hu:d:q: opt; do
+while getopts hnu:d:q: opt; do
     # loop continues till options finished
     # see which pattern $opt matches...
     query="select-posts.sql"
+    noquery=0
     case $opt in
         (u)
             userid=$OPTARG
@@ -72,6 +77,9 @@ while getopts hu:d:q: opt; do
             ;;
         (q)
             query=$OPTARG
+            ;;
+        (n)
+            noquery=1
             ;;
         (h)
             help
@@ -87,11 +95,15 @@ while getopts hu:d:q: opt; do
     esac
 done
 
-sudo mysql -u $userid -p $db < $query > all_posts.txt
+if [ $noquery -ne 1 ]; then
 
-mkdir -p wp_posts
-# split all_posts into individual posts and put them in the wp_posts directory.
-awk '/\*\*\*\*\*.*/{x="wp_posts/wp-post"++i;}{print > x;}' all_posts.txt
+    sudo mysql -u $userid -p $db < $query > all_posts.txt
+
+    mkdir -p wp_posts
+    # split all_posts into individual posts and put them in the wp_posts directory.
+    awk '/\*\*\*\*\*.*/{x="wp_posts/wp-post"++i;}{print > x;}' all_posts.txt
+
+fi
 
 # convert and rename wordpress posts into jekyll markdown
 # put them into the md_posts directory.
