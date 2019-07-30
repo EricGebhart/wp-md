@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 ## shell script to convert a wordpress post into a
 ## markdown post. The filename is created from the date
 ## and title of the post.  The basic header is added,
@@ -7,8 +8,10 @@
 ## them. HTML links are mostly fixed, but they will need
 ## human editing.
 
-## Takes one argument.  The filename for the wordpress post file
+## Takes two arguments.  The filename for the wordpress post file
 ## as created by gen-posts. $1 from here on...
+## the second argument is the directory to place the resulting
+## markdown file. md_posts by default.
 
 # get the date, not the time.
 date=`awk -F ' ' '/date:/{print $2}' $1`
@@ -19,10 +22,16 @@ date=`awk -F ' ' '/date:/{print $2}' $1`
 # into a '-' which is perfect when we make the filename.
 title=`awk -F ':' '/title:/{print $2}' $1 | sed -e 's/[,\.]//g' -e 's/ /-/g'`
 
-# make sure we have a place to put stuff.
-mkdir -p md_posts
+if [ -n ${2} ];then
+    md_directory=$2
+else
+    md_directory="md_posts"
+fi
 
-filename=md_posts/$date$title".md"
+# make sure we have a place to put stuff.
+mkdir -p $md_directory
+
+filename=$md_directory/$date$title".md"
 
 # so we know what is happening.
 echo $filename

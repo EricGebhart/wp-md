@@ -16,7 +16,7 @@ help(){
     print 'If you have already queried everything and just wish'
     print 'to reconvert your wp_posts run this with the -n  option'
     print '-n will skip steps which query the database and create'
-    pritn 'the individual wp_post files.
+    print 'the individual wp_post files.'
     print ' '
     print 'The process is this:'
     print '  * query mysql database and create all_posts.txt'
@@ -33,17 +33,35 @@ help(){
     print 'Add patterns to convert.sed as needed. '
     print 'Some html tags like <pre> work perfectly fine.'
     print ' '
-    print ' -u user      mysql user id'
-    print ' -d db        mysql database name'
-    print ' -q filename  Filename for SQL query'
-    print '              defaults to "select-posts.sql"'
-    print ' -n           No Query. Just convert html to md.'
-    print ' -h           This help text.'
+    print ' -u user        mysql user id'
+    print ' '
+    print ' -d db          mysql database name'
+    print ' '
+    print ' -q filename    Filename for SQL query'
+    print '                defaults to "select-posts.sql"'
+    print '                There is also "select-pages.sql"'
+    print '                or you can roll your own.'
+    print ' '
+    print ' -w directory   Directory to place wordpress posts.'
+    print '                By default this is "wp_posts".'
+    print ' '
+    print ' -m directory   Directory to place markdown posts.'
+    print '                By default this is "md_posts".'
+    print ' '
+    print ' -n             No Query. Just convert the html posts'
+    print '                in the -w directory to markdown and'
+    print '                put them in the -m directory.'
+    print ' '
+    print ' -f filename    Wordpress post file to process, implies'
+    print '                -n, use -m to change the destination.'
+    print ' '
+    print ' -h             This help text.'
     print ' '
     print 'Files:'
     print ' * gen-posts -- this file.  Uses the following files.'
     print ' '
     print '     * select-posts.sql  -- query for posts'
+    print '     * select-pages.sql  -- query for pages'
     print '     * html-md -- rename, insert header, convert to markdown'
     print '     * convert.sed  -- Sed commands to cleanup and convert'
     print '                       html file to markdown.'
@@ -51,10 +69,17 @@ help(){
     print 'Example:'
     print './gen-posts -u eric -d ericgebhart'
     print ' '
+    print ' To use the pages query and put your pages in'
+    print ' a different folder you can do something like this'
+    print ' '
+    print './gen-posts -u eric -d ericgebhart '
+    print '            -q select-pages.sql'
+    print '            -w wp_pages'
+    print '            -m md_pages'
+    print ' '
+    print './gen-posts -f wp_posts/wp-post1'
+    print ' '
     print 'See Also: '
-    print 'html-md.sh will does the conversion from the'
-    print 'Extracted posts using convert.sed for the changes'
-    print 'between html and markdown.'
     print 'http://github.com/EricGebhart/wp-md/'
     print ' '
     exit
@@ -63,11 +88,13 @@ help(){
 
 # $opt will hold the current option
 local opt
-while getopts hnu:d:q: opt; do
+wp_directory="wp_posts"
+md_directory="md_posts"
+query="select-posts.sql"
+noquery=0
+while getopts hnu:d:q:w:m:f: opt; do
     # loop continues till options finished
     # see which pattern $opt matches...
-    query="select-posts.sql"
-    noquery=0
     case $opt in
         (u)
             userid=$OPTARG
@@ -77,6 +104,16 @@ while getopts hnu:d:q: opt; do
             ;;
         (q)
             query=$OPTARG
+            ;;
+        (f)
+            filename=$OPTARG
+            noquery=1
+            ;;
+        (w)
+            wp_directory=$OPTARG
+            ;;
+        (m)
+            md_directory=$OPTARG
             ;;
         (n)
             noquery=1
@@ -99,13 +136,22 @@ if [ $noquery -ne 1 ]; then
 
     sudo mysql -u $userid -p $db < $query > all_posts.txt
 
-    mkdir -p wp_posts
-    # split all_posts into individual posts and put them in the wp_posts directory.
-    awk '/\*\*\*\*\*.*/{x="wp_posts/wp-post"++i;}{print > x;}' all_posts.txt
+    mkdir -p $wp_directory
+    echo "Putting wordpress posts here:" $wp_directory
+
+    # split all_posts into individual posts and put them
+    # in the wp_posts directory.
+    awk -v dir=$wp_directory '/\*\*\*\*\*.*/{x=dir"/wp-post"++i;}{print > x;}' all_posts.txt
 
 fi
 
 # convert and rename wordpress posts into jekyll markdown
 # put them into the md_posts directory.
 
-find wp_posts -type f -name 'wp-post*' | xargs -n 1 ./html-md.sh
+echo "Putting markdown posts here:" $md_directory
+
+if [ -v ${filename} ]; then
+    find $wp_directory -type f -name 'wp-post*' | xargs -i -n 1 ./html-md {} $md_directory
+else
+    ./html-md $filename $md_directory
+fi

@@ -35,7 +35,7 @@ But truly would that have
 been better ? Faster to write ? Better organized ? Faster ? 
 Those are big questions. This method offers
 encapsulation of the solution and responsibilities.  
-There's a query file, a sed command file
+There's two query files, a sed command file
 for the conversion, a master script, and a script specific to creating
 converted markdown. It's a nice way to build things. If we get new
 queries, great. Everything is encapsulated and clear. 
@@ -66,15 +66,15 @@ need to do is run the 'gen-posts' script.
 
 ---
 
-'gen-posts -u <userid> -d <database-name>'
+`gen-posts -u <userid> -d <database-name>`
 
-For me that was 'gen-posts -u eric -d ericgebhart' 
+For me that was `gen-posts -u eric -d ericgebhart` 
 
 With my measly 22 posts this runs in a second or two. 
 Then I have to check them all, edit any weirdness and 
 add annoying things to the 'convert.sed' script.
 
-There is _help_.  'gen-posts -h' to get a verbose explanation.
+There is _help_.  `gen-posts -h` to get a verbose explanation.
 
 ---
 
@@ -104,26 +104,35 @@ The program files should be pretty obvious, but just in case.
 The master of all. It uses the query in *select-posts.sql* 
 to get everything into a file named _all_posts.txt_.
 Then it has a line of awk to break _all_posts.txt_ into individual wordpress posts. 
-Then it lets _html-md.sh_ do the rest.
+Then it lets _html-md_ do the rest.
+There are options to do just about everything you would want.
+Run an alternate query, not run a query at all, put stuff in
+different directories.  A basic command will look something like this. 
+`gen-posts -u eric -d ericgebhart`
+A more complex command could be something like this.
+`gen-posts -u eric -d ericgebhart -q select_pages.sql -w wp_pages -m md_pages`
+or to just redo the conversions from html to markdown again,
+`gen-posts -n`  or `gen-posts -n -w wp_pages -m md_pages`
 
-### select-posts.sql
+### select-posts.sql and select-pages.sql
 
-The SQL query is in the file *select-posts.sql* its a pretty
-basic query so if you want to modify it get pages, or posts for
-a certain author. I'm sure you can find a post on the internet 
-about that. The important parts are that the query uses the \g
-and that you get the title and the date and the content.
+There are two SQL queries one is *select-posts.sql* and 
+the other is *select-pages.sql* They are pretty
+basic queries so you may want to roll your own.
+I'm sure you can find a post on the internet 
+about the various ways to query posts by author and 
+other things. 
+The important parts are that the query uses the '\g'
+and that you get the title, the date and the content.
 
 If you dive into that take a look at the resulting 'all-posts' 
 file you'll want your results to look like that.
 
-It might be a future improvement to have multiple queries to
-choose from as an option for the _gen-posts_ script, so if you
-come up with a different query do a pull request to add it.
+_gen-posts_ script has an option '-q' to pass any query you like.
 
-### html-md.sh
+### html-md
 
-The rest of this is done with *Awk* and *Sed*.  The 'html-md.sh' script
+The rest of this is done with *Awk* and *Sed*.  The 'html-md' script
 extracts the date and title to create the filename and creates the jekyll
 header for the post. The 'convert.sed' file is a list of sed commands
 to clean up and replace the HTML tags with markdown.
