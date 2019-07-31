@@ -19,36 +19,25 @@ But the bulk of the work will be done.
 
 ### environment
 
-I use linux with zsh. If you are on windows you'll need at least gnu-tools. 
-(shell (zsh), awk, sed) But I really don't know the specifics. 
-I suppose if you
-are installing mysql you'll know something. OSX is similar although a bit better. I used to run zsh on OSX so all this shouldn't be much of a problem, _Homebrew_ to the rescue. 
-Options are processed differently with Bash, and I don't care for it. That is probably the only thing in the script specific to zsh.
-
 If you would like to share what is needed for your platform do
 a pull request and update this readme.
 
 ---
 If you are wondering...
-This is shell, awk and sed. Yes I could have written it in Perl, or Python, or Ruby, or something else, in a single file.  
-But truly would that have
-been better ? Faster to write ? Better organized ? Faster ? 
-Those are big questions. This method offers
-encapsulation of the solution and responsibilities.  
-There's two query files, a sed command file
-for the conversion, a master script, and a script specific to creating
-converted markdown. It's a nice way to build things. If we get new
+This is shell, awk and sed. 
+It just evolved that way.
+But It's a nice way to build things. If we get new
 queries, great. Everything is encapsulated and clear. 
 Nothing is huge. New patterns for
-conversion, those go over there in the _.sed_ file. It has, by default, a nice sustainable, maintainable architecture.
-Would any of the other languages be faster?  I doubt it.
+conversion, those go over there in the _convert.sed_ file. It has, by default, a nice sustainable, maintainable architecture.
+I doubt that any other languages be faster.
 
 ---
 
 ## Why ?
 
-I needed this because I no longer had my wordpress site. Only 
-the last SQLDump.
+I needed this because I no longer had my wordpress site. I Only 
+had the last SQLDump.
 
 ## How ?
 
@@ -70,9 +59,21 @@ need to do is run the 'gen-posts' script.
 
 For me that was `gen-posts -u eric -d ericgebhart` 
 
+Or like this if you want to extract your pages into a different place:
+
+`gen-posts -u <username> -d <databasename> -q select_pages.sql -w wp_pages -m md_pages`
+
+Or if you don't want to query again but want to reconvert:
+
+`gen-posts -n`
+
+For help:
+
+`gen-posts -h`
+
 With my measly 22 posts this runs in a second or two. 
 Then I have to check them all, edit any weirdness and 
-add annoying things to the 'convert.sed' script.
+add annoying things to the `convert.sed` script.
 
 There is _help_.  `gen-posts -h` to get a verbose explanation.
 
@@ -102,17 +103,26 @@ The program files should be pretty obvious, but just in case.
 ### gen-posts
 
 The master of all. It uses the query in *select-posts.sql* 
-to get everything into a file named _all_posts.txt_.
-Then it has a line of awk to break _all_posts.txt_ into individual wordpress posts. 
+to get everything into a file named __all_posts.txt__.
+Then it has a line of awk to break __all_posts.txt__ into individual wordpress posts. 
 Then it lets _html-md_ do the rest.
 There are options to do just about everything you would want.
 Run an alternate query, not run a query at all, put stuff in
 different directories.  A basic command will look something like this. 
 `gen-posts -u eric -d ericgebhart`
+
 A more complex command could be something like this.
+
 `gen-posts -u eric -d ericgebhart -q select_pages.sql -w wp_pages -m md_pages`
+
 or to just redo the conversions from html to markdown again,
-`gen-posts -n`  or `gen-posts -n -w wp_pages -m md_pages`
+
+`gen-posts -n` or maybe `gen-posts -n -w wp_pages -m md_pages`
+
+for a single file, which implies no query, this works.
+
+`gen-posts -f <wp-post-filename>`  
+Add `-m directory-name`  needed.
 
 ### select-posts.sql and select-pages.sql
 
@@ -122,7 +132,7 @@ basic queries so you may want to roll your own.
 I'm sure you can find a post on the internet 
 about the various ways to query posts by author and 
 other things. 
-The important parts are that the query uses the '\g'
+The important parts are that the query uses the '\G'
 and that you get the title, the date and the content.
 
 If you dive into that take a look at the resulting 'all-posts' 
@@ -132,13 +142,14 @@ _gen-posts_ script has an option '-q' to pass any query you like.
 
 ### html-md
 
-The rest of this is done with *Awk* and *Sed*.  The 'html-md' script
+The rest of this is done with *Awk* and *Sed*.  The _html-md_ script
 extracts the date and title to create the filename and creates the jekyll
-header for the post. The 'convert.sed' file is a list of sed commands
-to clean up and replace the HTML tags with markdown.
+header for the post. It uses the _convert.sed_ file for cleanup and the conversion from html to markdown
 Finally the output is piped through *fmt* which reformats the paragraphs
-from continuous text into lines with newlines. The default is a line
-length of 75 characters.
+from continuous text into lines with newlines. The default is a line length of 75 characters.
+
+If tags and category fields were added, this script would be the
+one that would need to change.
 
 ### convert.sed
 
@@ -151,6 +162,11 @@ My HTML was pretty simple, YMMV.
 
 If you run into things I didn't cover which is likely,
 just add new patterns to 'convert.sed'.
+
+---
+
+For more details on how this actually works read the code
+and additionally read my [post](http://ericgebhart.com/blog/code/2019-07-39-Converting-from-wordpress-to-markdown)
 
 ---
 
